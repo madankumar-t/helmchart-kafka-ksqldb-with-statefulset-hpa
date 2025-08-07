@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ksqldb
+spec:
+  replicas: {{ .Values.ksqldb.replicas }}
+  selector:
+    matchLabels:
+      app: ksqldb
+  template:
+    metadata:
+      labels:
+        app: ksqldb
+    spec:
+      containers:
+        - name: ksqldb
+          image: "{{ .Values.ksqldb.image }}:{{ .Values.ksqldb.tag }}"
+          ports:
+            - containerPort: {{ .Values.ksqldb.port }}
+          volumeMounts:
+            - name: ksqldb-data
+              mountPath: /var/lib/ksqldb/data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.ksqldb.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.ksqldb.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          env:
+            {{- range $key, $val := .Values.ksqldb.env }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+            {{- end }}
+        - name: ksqldb-logger
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args: ["tail -F /var/lib/ksqldb/data/ksqldb.log"]
+          volumeMounts:
+            - name: ksqldb-data
+              mountPath: /var/lib/ksqldb/data
+      volumes:
+        - name: ksqldb-data
+          persistentVolumeClaim:
+            claimName: ksqldb-pvc

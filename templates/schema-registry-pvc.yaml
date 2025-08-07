@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: schema-registry-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "{{ .Values.schemaRegistry.storageClassName }}"
+  resources:
+    requests:
+      storage: 1Gi

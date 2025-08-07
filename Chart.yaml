@@ -1,0 +1,5 @@
+apiVersion: v2
+name: confluent-localdev
+description: Helm chart for deploying Kafka, ksqlDB, and Schema Registry to EKS
+version: 0.1.0
+appVersion: "1.0"

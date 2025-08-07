@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+spec:
+  replicas: {{ .Values.kafka.replicas }}
+  selector:
+    matchLabels:
+      app: kafka
+  serviceName: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: "{{ .Values.kafka.image }}:{{ .Values.kafka.tag }}"
+          ports:
+            - containerPort: {{ .Values.kafka.port }}
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.kafka.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.kafka.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          env:
+            {{- range $key, $val := .Values.kafka.env }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+            {{- end }}
+        - name: kafka-logger
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args: ["tail -F /var/lib/kafka/data/server.log"]
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "{{ .Values.kafka.storageClassName }}"
+        resources:
+          requests:
+            storage: 1Gi

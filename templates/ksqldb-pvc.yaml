@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ksqldb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "{{ .Values.ksqldb.storageClassName }}"
+  resources:
+    requests:
+      storage: 1Gi

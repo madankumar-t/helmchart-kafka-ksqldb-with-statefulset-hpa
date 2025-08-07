@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry
+spec:
+  replicas: {{ .Values.schemaRegistry.replicas }}
+  selector:
+    matchLabels:
+      app: schema-registry
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+    spec:
+      containers:
+        - name: schema-registry
+          image: "{{ .Values.schemaRegistry.image }}:{{ .Values.schemaRegistry.tag }}"
+          ports:
+            - containerPort: {{ .Values.schemaRegistry.port }}
+          volumeMounts:
+            - name: schema-registry-data
+              mountPath: /var/lib/schema-registry/data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.schemaRegistry.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.schemaRegistry.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          env:
+            {{- range $key, $val := .Values.schemaRegistry.env }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+            {{- end }}
+        - name: schema-registry-logger
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args: ["tail -F /var/lib/schema-registry/data/schema-registry.log"]
+          volumeMounts:
+            - name: schema-registry-data
+              mountPath: /var/lib/schema-registry/data
+      volumes:
+        - name: schema-registry-data
+          persistentVolumeClaim:
+            claimName: schema-registry-pvc
