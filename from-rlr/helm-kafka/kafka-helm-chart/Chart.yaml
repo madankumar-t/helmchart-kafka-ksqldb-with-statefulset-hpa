@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kafka-single
+description: Single-broker Kafka (KRaft) with fully-configurable env via values.yaml
+type: application
+version: 0.1.0
+appVersion: "3.7"

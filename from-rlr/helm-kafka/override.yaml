@@ -1,0 +1,45 @@
+image:
+  repository: 977099017816.dkr.ecr.us-east-1.amazonaws.com/core
+  tag: core-data-integration-lib-container-kafka_1.1.1-feature-ARCH-337-SNAPSHOT_011bf268
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: ecr-creds
+
+persistence:
+  enabled: true
+  storageClass: gp2        # <- set to your class
+  size: 10Gi
+
+service:
+  public:
+    enabled: true
+    type: ClusterIP        # or LoadBalancer if you need external
+
+env:
+  # NEW cluster id for a fresh KRaft format (can be any UUID-looking string)
+  CLUSTER_ID: "kRaft-rlr-$(date +%s)"   # if your shell expands this, replace with a static string
+
+  # Single-node KRaft
+  KAFKA_NODE_ID: "1"
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+
+  # IMPORTANT: use namespace rlr in FQDNs
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-0.kafka.rlr.svc.cluster.local:9093"
+
+  # Bind on all interfaces, but advertise correct DNS for in-cluster clients
+  KAFKA_LISTENERS: "PLAINTEXT://:29092,PLAINTEXT_HOST://:9092,CONTROLLER://:9093"
+  KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-0.kafka.rlr.svc.cluster.local:29092,PLAINTEXT_HOST://kafka.rlr.svc.cluster.local:9092"
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
+  KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+
+  # Use a subdirectory so we don't hit the 'lost+found' error
+  KAFKA_LOG_DIRS: "/var/lib/kafka/data/kraft-combined-logs"
+
+  # Dev-friendly factors
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  KAFKA_BROKER_ID: "1"
+  KAFKA_KRAFT_BROKER_ID: "1"
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"

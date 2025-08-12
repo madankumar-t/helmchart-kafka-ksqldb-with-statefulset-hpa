@@ -1,0 +1,32 @@
+image:
+  repository: public.ecr.aws/q9v7p8s3/localdev/confluentinc/dcli-ksqldb
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8088
+
+kafka:
+  bootstrapServers: "kafka.rlr.svc.cluster.local:29092"
+
+schemaRegistry:
+  url: "https://psrc-8kz20.us-east-2.aws.confluent.cloud"
+  secret:
+    create: true
+    name: ksqldb-schema-registry-auth
+    username: "C3CWXI6PLZWPFN3D"
+    password: "eOKPLH6AJDNAB3EP20LQ8tKFzmElCsQkVZpgY9Z8qkOnZ/VaZedelECIAot5OOKg"
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 100m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+extraEnv:
+  KSQL_JVM_OPTS: "-Xms384m -Xmx640m"

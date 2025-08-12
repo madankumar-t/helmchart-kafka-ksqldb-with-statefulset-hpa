@@ -1,0 +1,42 @@
+image:
+  repository: public.ecr.aws/q9v7p8s3/localdev/confluentinc/dcli-schema-registry
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8081
+
+# Debug startup: unset PORT, log all output, keep container alive for inspection
+command: ["/bin/bash", "-lc"]
+args:
+  - |
+    unset PORT
+    set -euxo pipefail
+    /etc/confluent/docker/run 2>&1 | tee /tmp/sr-startup.log
+    echo "exit-code=${PIPESTATUS[0]}"
+    sleep 3600
+
+env:
+  SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+  SCHEMA_REGISTRY_ADVERTISED_LISTENERS: "http://schema-registry.rlr.svc.cluster.local:8081"
+  SCHEMA_REGISTRY_LISTENER_SECURITY_PROTOCOL_MAP: "http:PLAINTEXT"
+  SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+  SCHEMA_REGISTRY_HOST_NAME: "schema-registry.rlr.svc.cluster.local"
+  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka.rlr.svc.cluster.local:9092"
+  SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "PLAINTEXT"
+  SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: "1"
+  SCHEMA_REGISTRY_HEAP_OPTS: "-Xms256m -Xmx384m"
+  SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: "DEBUG"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+extraEnv: {}

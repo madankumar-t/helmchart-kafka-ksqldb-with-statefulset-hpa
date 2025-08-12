@@ -1,0 +1,6 @@
+apiVersion: v2
+name: schema-registry
+description: Confluent Schema Registry (single replica)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

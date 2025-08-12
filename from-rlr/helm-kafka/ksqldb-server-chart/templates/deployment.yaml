@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ksqldb-server.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ksqldb-server.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "ksqldb-server.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "ksqldb-server.fullname" . }}
+    spec:
+      containers:
+        - name: ksqldb-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8088
+          env:
+            - name: KSQL_CONFIG_DIR
+              value: "/etc/ksql"
+            - name: KSQL_BOOTSTRAP_SERVERS
+              value: {{ .Values.kafka.bootstrapServers | quote }}
+            - name: KSQL_LISTENERS
+              value: "http://0.0.0.0:8088"
+            - name: KSQL_KSQL_SERVICE_ID
+              value: "ksql_service_01"
+            - name: KSQL_STREAMS_STATE_DIR
+              value: "/tmp/ksql-streams"
+            - name: KSQL_LOG4J_OPTS
+              value: "-Dlog4j.configuration=file:/etc/ksqldb/log4j.properties"
+            - name: KSQL_KSQL_SCHEMA_REGISTRY_URL
+              value: {{ .Values.schemaRegistry.url | quote }}
+            - name: KSQL_KSQL_SCHEMA_REGISTRY_BASIC_AUTH_CREDENTIALS_SOURCE
+              value: "USER_INFO"
+            - name: KSQL_KSQL_SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.schemaRegistry.secret.name }}
+                  key: userInfo
+          readinessProbe:
+            httpGet:
+              path: /info
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /info
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources: {{- toYaml .Values.resources | nindent 12 }}

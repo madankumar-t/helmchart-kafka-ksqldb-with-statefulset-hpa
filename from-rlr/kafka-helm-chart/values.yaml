@@ -1,0 +1,38 @@
+image:
+  repository: 977099017816.dkr.ecr.us-east-1.amazonaws.com/core
+  tag: core-data-integration-lib-container-kafka_1.1.1-feature-ARCH-337-SNAPSHOT_011bf268
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: ecr-creds
+
+persistence:
+  enabled: true
+  storageClass: gp2
+  size: 10Gi
+
+service:
+  headless:
+    portInternal: 29092
+    portClient: 9092
+    portController: 9093
+  public:
+    enabled: true
+    type: ClusterIP
+
+env:
+  CLUSTER_ID: "M8V6KJ8pQlu7NRlMv5eK6g"
+  KAFKA_NODE_ID: "1"
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-0.kafka.rlr.svc.cluster.local:9093"
+  KAFKA_LISTENERS: "PLAINTEXT://:29092,PLAINTEXT_HOST://:9092,CONTROLLER://:9093"
+  KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-0.kafka.rlr.svc.cluster.local:29092,PLAINTEXT_HOST://kafka.rlr.svc.cluster.local:9092"
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
+  KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+  KAFKA_LOG_DIRS: "/var/lib/kafka/data/kraft-combined-logs"
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  KAFKA_BROKER_ID: "1"
+  KAFKA_KRAFT_BROKER_ID: "1"
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
